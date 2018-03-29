@@ -1,0 +1,4 @@
+#!/bin/sh
+
+IMAGE_NAME=$1
+docker exec -it $IMAGE_NAME /bin/sh

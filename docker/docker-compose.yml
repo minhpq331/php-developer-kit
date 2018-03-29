@@ -1,0 +1,36 @@
+version: '2'
+
+services:
+    nginx:
+        image: nginx
+        ports:
+            - "8080:80"
+        links:
+            - "php71:php"
+        volumes:
+            - ./nginx/conf.d:/etc/nginx/conf.d
+            - ./logs/nginx-error.log:/var/log/nginx/error.log
+            - ./logs/nginx-access.log:/var/log/nginx/access.log
+            - /home/minh/public_html:/public_html
+        # command: [nginx-debug, '-g', 'daemon off;']
+        
+    php71:
+        image: minhpq331/fpm-7.1-alpine-ext
+        volumes:
+            - /home/minh/public_html:/public_html
+            - ./php/7.1/conf.d/custom.ini:/usr/local/etc/php/conf.d/custom.ini
+        links:
+            - "dockerhost"    
+
+    # php56:
+    #     image: minhpq331/fpm-5.6-alpine-ext
+    #     volumes:
+    #         - /home/minh/public_html:/public_html
+    #     links:
+    #         - "dockerhost"
+
+    dockerhost:
+        restart: on-failure
+        image: qoomon/docker-host
+        cap_add: [ 'NET_ADMIN', 'NET_RAW' ]
+        mem_limit: 4M
