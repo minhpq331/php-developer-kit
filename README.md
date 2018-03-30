@@ -1,0 +1,3 @@
+# PHP Developer Kit
+
+Developer kit for PHP developing, include LEMP stack, PHP 5.6/7.1, redis, phpmyadmin,...
