@@ -3,11 +3,10 @@ version: '2'
 services:
     www:
         container_name: www
-        image: phusion/baseimage:latest
+        image: nimmis/alpine:latest
         volumes:
             # mount code folder
             - ~/public_html:/data/www
-        command: ["/sbin/my_init"]
         restart: always
         
     nginx:
@@ -38,7 +37,8 @@ services:
             - www
         links:
             - redis 
-            - dockerhost 
+            - mysql 
+            # - dockerhost 
         restart: always
 
     # php56:
@@ -57,9 +57,18 @@ services:
             - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf
         restart: always
 
-    dockerhost:
-        container_name: dockerhost
-        restart: on-failure
-        image: qoomon/docker-host
-        cap_add: [ 'NET_ADMIN', 'NET_RAW' ]
-        mem_limit: 4M
+    mysql:
+        container_name: mysql
+        image: leafney/docker-alpine-mysql
+        volumes:
+            - ./data/mysql:/var/lib/mysql
+        environment:
+            MYSQL_ROOT_PWD: 'root'
+        restart: always
+
+    # dockerhost:
+    #     container_name: dockerhost
+    #     restart: on-failure
+    #     image: qoomon/docker-host
+    #     cap_add: [ 'NET_ADMIN', 'NET_RAW' ]
+    #     mem_limit: 4M
