@@ -1,26 +1,45 @@
 version: '2'
 
 services:
+    www:
+        container_name: www
+        image: phusion/baseimage:latest
+        volumes:
+            # mount code folder
+            - ~/public_html:/data/www
+        command: ["/sbin/my_init"]
+        restart: always
+        
     nginx:
+        container_name: nginx
         image: nginx
         ports:
             - "8080:80"
         links:
             - "php71:php"
         volumes:
-            - ./nginx/conf.d:/etc/nginx/conf.d
-            - ./logs/nginx-error.log:/var/log/nginx/error.log
-            - ./logs/nginx-access.log:/var/log/nginx/access.log
-            - /home/minh/public_html:/public_html
+            # Custom vhost
+            - ./config/nginx/conf.d:/etc/nginx/conf.d
+            # nginx log
+            - ./log/nginx/error.log:/var/log/nginx/error.log
+            - ./log/nginx/access.log:/var/log/nginx/access.log
+        volumes_from:
+            - www
+        restart: always
+
         # command: [nginx-debug, '-g', 'daemon off;']
         
     php71:
-        image: minhpq331/fpm-7.1-alpine-ext
+        container_name: php71
+        build: ./image/php/7.1
         volumes:
-            - /home/minh/public_html:/public_html
-            - ./php/7.1/conf.d/custom.ini:/usr/local/etc/php/conf.d/custom.ini
+            - ./config/php/7.1/conf.d/custom.ini:/usr/local/etc/php/conf.d/custom.ini
+        volumes_from:
+            - www
         links:
-            - "dockerhost"    
+            - redis 
+            - dockerhost 
+        restart: always
 
     # php56:
     #     image: minhpq331/fpm-5.6-alpine-ext
@@ -29,7 +48,17 @@ services:
     #     links:
     #         - "dockerhost"
 
+    redis:
+        container_name: redis
+        image: redis:alpine
+        command: ["redis-server", "--appendonly", "yes"]
+        volumes:
+            - ./data/redis:/data
+            - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf
+        restart: always
+
     dockerhost:
+        container_name: dockerhost
         restart: on-failure
         image: qoomon/docker-host
         cap_add: [ 'NET_ADMIN', 'NET_RAW' ]
